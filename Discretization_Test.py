@@ -4,7 +4,7 @@ np.set_printoptions(threshold=np.inf)
 
 def discretize_data():
     #read csv file into dataframe
-    data = pf.read_csv("C:\\Users\ROSS\Documents\Study\Data Science\software-defects-cm1.csv")
+    data = pf.read_csv("software-defects-cm1.csv")
 
     #calculated mean value of each column and stored it in a variable for further use.
     loc_mean = data["loc"].mean()
@@ -205,12 +205,48 @@ def outcome_prob(defects):
 
 # def calculate_class_prob(class_prob_dict):
 
+def evaluate_prediction(predicted_target_values, validation_target_data):
+    true_positive = 0
+    false_positive = 0
+    false_negative = 0
+
+    precision = 0;
+    recall = 0;
+    accuracy = 0;
+
+    for i in range(len(predicted_target_values)):
+        if predicted_target_values[i] == 0 and validation_target_data[i] == 0:
+            true_positive +=1
+        if predicted_target_values[i] == 0 and validation_target_data[i] == 1:
+            false_positive +=1
+        if predicted_target_values[i] == 1 and validation_target_data[i] == 0:
+            false_negative +=1
+        if predicted_target_values[i] == validation_target_data[i]:
+            accuracy +=1
+    #print(true_positive, false_positive, false_negative)
+
+    precision = true_positive / (true_positive + false_positive)
+    recall = true_positive / (true_positive + false_negative)
+    f1 = (2 * precision * recall) / (precision + recall)
+    accuracy = accuracy/len(validation_target_data)
+    #print(precision, recall, f1)
+    #print("accuracy", accuracy/len(validation_target_data))
+
+    return precision, recall, f1, accuracy
+
+
+
 
 if __name__ == "__main__":
 
     training_set, defects = discretize_data()
     train_fold, target_fold = create_data_folds(training_set, defects)
     # print(train_fold.shape)
+
+    precision_list = []
+    recall_list = []
+    f1_list = []
+    accuracy_list = []
 
     for i in range(10):
         validation_train_data = train_fold[i]
@@ -239,6 +275,7 @@ if __name__ == "__main__":
                 prob_outcome[cls][j] = outcome_prob(list(subset[:, j]))
                 # print(prob_outcome)
 
+        predicted_target_values = []
         for j in validation_train_data:
             results = {}
             for cls in classes:
@@ -250,37 +287,18 @@ if __name__ == "__main__":
                     else:
                         class_probability *= 0
                     results[cls] = class_probability
-            print(results)
-        #
-        # results = {}
-        # for cls in classes:
-        #     class_probability = class_prob_dict[cls]
-        #
-        #     row, col = validation_train_data.shape
-        #     for rw in range(row):
-        #         for cl in range(col):
-        #             #print(validation_train_data[rw][cl])
-        # #     for i in range(0, len(validation_train_data)):
-        #             relative_values = prob_outcome[cls][cl]
-        #             if validation_train_data[rw][cl] in relative_values.keys():
-        #                 class_probability *= relative_values[validation_train_data[rw][cl]]
-        #             else:
-        #                 class_probability *= 0
-        #             results[cls] = class_probability
-        #             print(results)
-
-        # results = {}
-        # for cls in classes:
-        #     class_probability = class_prob_dict[cls]
-        #     ab = [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0]
-        #     for i in range(0, len(ab)):
-        #         relative_values = prob_outcome[cls][i]
-        #         if ab[i] in relative_values.keys():
-        #             class_probability *= relative_values[ab[i]]
-        #         else:
-        #             class_probability *= 0
-        #         results[cls] = class_probability
-        # print(results)
+            #print(results)
+            predicted_target_values.append(max(results, key=results.get))
+        #print(len(predicted_target_values), len(validation_target_data))
+        precision, recall, f1, accuracy= evaluate_prediction(predicted_target_values, validation_target_data.tolist())
+        precision_list.append(precision)
+        recall_list.append(recall)
+        f1_list.append(f1)
+        accuracy_list.append(accuracy)
+    print("precision", np.mean(precision_list))
+    print("recall", np.mean(recall_list))
+    print("f1", np.mean(f1_list))
+    print("accuracy", np.mean(accuracy))
 
 
 
