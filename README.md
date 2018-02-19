@@ -1,4 +1,4 @@
-# Data-Science
+# Naive - Bayesian classifier
 Instructions:
 1.	Download the python code file – Discretization_Test.py and place the dataset file – “software-defects-cml.csv” in the same folder.
 2. Link to download the sample dataset http://promise.site.uottawa.ca/SERepository/
